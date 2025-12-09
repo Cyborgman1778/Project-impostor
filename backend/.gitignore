@@ -4,3 +4,8 @@
 # Archivos de Entorno y Logs (opcionales pero recomendados)
 .env
 npm-debug.log
+
+
+
+*.sqlite
+*.db

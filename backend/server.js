@@ -92,8 +92,24 @@ app.post('/api/actualizar-datos', (req, res) => {
     res.json({ success: true, mensaje: 'Datos actualizados y notificados' });
 });
 
-// 5. ARRANCAR EL SERVIDOR
+// --- 5. ARRANCAR SERVIDOR Y BASE DE DATOS ---
 const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+
+async function arrancarServidor() {
+  try {
+    // A. Sincronizar Base de Datos
+    // Esto mira tus archivos en 'models' y crea las tablas si no existen.
+    await sequelize.sync({ force: false }); 
+    console.log('📦 Base de datos sincronizada y tablas listas.');
+
+    // B. Iniciar el servidor Web
+    server.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    console.error('❌ Error fatal al iniciar:', error);
+  }
+}
+
+arrancarServidor();
