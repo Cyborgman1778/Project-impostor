@@ -16,36 +16,58 @@ const server = http.createServer(app);
 
 // 4. CONFIGURAR SOCKET.IO
 const io = new Server(server, {
-  cors: {
-    origin: "*", // En producción, pon aquí la URL de tu app Vue
-    methods: ["GET", "POST"]
-  }
+    cors: {
+        origin: "*", // En producción, pon aquí la URL de tu app Vue
+        methods: ["GET", "POST"]
+    }
 });
 
 // --- ZONA A: WEBSOCKETS (Tiempo Real) ---
 
 io.on('connection', (socket) => {
-  console.log(`⚡ Cliente conectado: ${socket.id}`);
+    console.log(`Cliente conectado: ${socket.id}`);
 
-  // Evento: El cliente nos envía un mensaje
-  socket.on('mensaje-desde-movil', (data) => {
-    console.log('Mensaje recibido:', data);
-    
-    // Responder solo a ese cliente
-    socket.emit('respuesta-servidor', { msg: 'Recibido fuerte y claro' });
-  });
+    // TEST: El cliente nos envía un mensaje
+    socket.on('test', (data) => {
+        console.log('Mensaje recibido:', data);
 
-  // Evento: Desconexión
-  socket.on('disconnect', () => {
-    console.log('❌ Cliente desconectado');
-  });
+        // Responder solo a ese cliente
+        socket.emit('test-response', { msg: 'Recibido fuerte y claro' });
+    });
+
+    // Evento: Jugador quiere entrar a una partida
+    socket.on('unirse-partida', async (data) => {
+        const { codigo, usuarioId } = data;
+
+        // A. Lógica de Base de Datos (Persistencia)
+        // Usamos la función del paso 2 para guardar que este usuario está en la partida
+        const partida = await Partida.findByPk(codigo);
+        // ... lógica de añadir al array y guardar ...
+
+        // B. Lógica de Websockets (La Magia de las Salas)
+        // Metemos este socket específico en un "cuarto" virtual con el nombre del código
+        socket.join(codigo);
+
+        console.log(`Socket ${socket.id} se unió a la sala ${codigo}`);
+
+        // C. Notificar a TODOS en esa partida
+        // .to(codigo) envía el mensaje SOLO a los sockets que hicieron .join(codigo)
+        io.to(codigo).emit('actualizacion-sala', {
+            mensaje: `El jugador ${usuarioId} ha entrado`,
+            jugadores: partida.jugadores // Enviamos la lista actualizada
+        });
+
+        // Evento: Desconexión
+        socket.on('disconnect', () => {
+            console.log('❌ Cliente desconectado');
+        });
+    });
 });
-
 // --- ZONA B: API REST (Peticiones Clásicas) ---
 
 // Endpoint de prueba
 app.get('/api/saludo', (req, res) => {
-  res.json({ mensaje: 'Hola desde la API REST tradicional' });
+    res.json({ mensaje: 'Hola desde la API REST tradicional' });
 });
 
 /**
@@ -54,24 +76,24 @@ app.get('/api/saludo', (req, res) => {
  * Llama a esta API, y la API avisa a TODOS los móviles conectados.
  */
 app.post('/api/actualizar-datos', (req, res) => {
-  const { nuevoDato } = req.body;
+    const { nuevoDato } = req.body;
 
-  console.log('🔄 API recibida. Actualizando a todos los clientes...');
+    console.log('🔄 API recibida. Actualizando a todos los clientes...');
 
-  // Aquí guardarias en base de datos... y luego:
-  
-  // EMITIR A TODOS LOS SOCKETS CONECTADOS
-  io.emit('notificacion-global', { 
-    tipo: 'ACTUALIZACION', 
-    contenido: nuevoDato,
-    fecha: new Date()
-  });
+    // Aquí guardarias en base de datos... y luego:
 
-  res.json({ success: true, mensaje: 'Datos actualizados y notificados' });
+    // EMITIR A TODOS LOS SOCKETS CONECTADOS
+    io.emit('notificacion-global', {
+        tipo: 'ACTUALIZACION',
+        contenido: nuevoDato,
+        fecha: new Date()
+    });
+
+    res.json({ success: true, mensaje: 'Datos actualizados y notificados' });
 });
 
 // 5. ARRANCAR EL SERVIDOR
 const PORT = 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
