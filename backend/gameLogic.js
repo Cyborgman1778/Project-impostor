@@ -100,6 +100,7 @@ const iniciarPartida = async (io, socket, data) => {
         const { codigo, usuarioId } = data;
 
         const partida = await Partida.findByPk(codigo);
+        console.log('----------'+codigo+'......'+usuarioId);
         if (!partida) {
             socket.emit('error', 'La partida no existe');
             return;
@@ -116,7 +117,7 @@ const iniciarPartida = async (io, socket, data) => {
 
     }
     catch {
-        console.error("Error iniciando partida:", error);
+        console.error("Error iniciando partida:");
         socket.emit('error', 'No se pudo iniciar la partida');
     }
 }
