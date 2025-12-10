@@ -9,3 +9,4 @@ npm-debug.log
 
 *.sqlite
 *.db
+*.sqlite-journal

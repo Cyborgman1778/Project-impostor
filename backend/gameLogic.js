@@ -95,7 +95,29 @@ const crearPartida = async (socket, data) => {
     }
 };
 
+const iniciarPartida = async (io, socket, data) => {
+    try {
+        const { codigo, usuarioId } = data;
+
+        const partida = await Partida.findByPk(codigo);
+        if (!partida) {
+            socket.emit('error', 'La partida no existe');
+            return;
+        }
+
+        io.to(codigo).emit('partida-iniciada', {
+            mensaje: `El jugador ${usuarioId} ha iniciado la partida ${codigo}`
+        });
+
+    }
+    catch{
+        console.error("Error iniciando partida:", error);
+        socket.emit('error', 'No se pudo iniciar la partida');        
+    }
+}
+
 module.exports = {
     unirseAPartida,
-    crearPartida
+    crearPartida,
+    iniciarPartida
 };

@@ -7,7 +7,7 @@ const cors = require('cors');
 const { sequelize } = require('./database');
 const Partida = require('./models/Partida'); // Al importarlo, Sequelize ya sabe que existe
 
-const { unirseAPartida, crearPartida } = require('./gameLogic');
+const { unirseAPartida, crearPartida, iniciarPartida } = require('./gameLogic');
 
 // 2. CONFIGURACIÓN INICIAL
 const app = express();
@@ -47,7 +47,17 @@ io.on('connection', (socket) => {
 
     // Evento: Jugador quiere crear un partida
     socket.on('crear-partida', async (data) => {
-        const partida = crearPartida(socket, data);
+        const partida = await crearPartida(socket, data);
+
+        if (partida) {
+            socket.emit('partida-creada', partida);
+        }
+
+    });
+
+    // Evento: Jugador quiere iniciar un partida
+    socket.on('iniciar-partida', async (data) => {
+        const partida = await iniciarPartida(socket, data);
 
         if (partida) {
             socket.emit('partida-creada', partida);
