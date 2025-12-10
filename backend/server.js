@@ -7,7 +7,7 @@ const cors = require('cors');
 const { sequelize } = require('./database');
 const Partida = require('./models/Partida'); // Al importarlo, Sequelize ya sabe que existe
 
-const { unirseAPartida } = require('./gameLogic');
+const { unirseAPartida, crearPartida } = require('./gameLogic');
 
 // 2. CONFIGURACIÓN INICIAL
 const app = express();
