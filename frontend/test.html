@@ -41,6 +41,17 @@
     <button id="btn-unirse">Unirse</button>
   </fieldset>
 
+  <fieldset>
+    <legend>Iniciar Partida</legend>
+    <label>ID Jugador
+      <input type="text" id="s-usuario" placeholder="tu id" />
+    </label>
+    <label>Código de partida
+      <input type="text" id="s-codigo" placeholder="por ej. 123456" />
+    </label>
+    <button id="btn-iniciar">Iniciar partida</button>
+  </fieldset>
+
   <h2>Logs</h2>
   <div id="log"></div>
 
@@ -75,6 +86,17 @@
 
       socket.emit('unirse-partida', { usuarioId, codigo });
       log('🔄 Enviado unirse-partida...');
+    });
+
+    // --- Iniciar partida ---
+    document.getElementById('btn-iniciar').addEventListener('click', () => {
+      const usuarioId = document.getElementById('s-usuario').value.trim();
+      const codigo = document.getElementById('s-codigo').value.trim();
+
+      if (!usuarioId || !codigo) return log('⚠️  Completa ID de jugador y código de sala');
+
+      socket.emit('iniciar-partida', { usuarioId, codigo });
+      log('🔄 Enviado inicar-partida...');
     });
 
     // --- Listeners de respuestas del servidor ---
