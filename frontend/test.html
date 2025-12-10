@@ -108,6 +108,10 @@
       log('👥 ' + data.mensaje + ' | Jugadores: ' + data.jugadores.join(', '));
     });
 
+    socket.on('partida-iniciada', (data) => {
+      log('🚀 ' + data.mensaje);
+    });
+
     socket.on('error', (msg) => {
       log('⚠️  Error: ' + msg);
     });
