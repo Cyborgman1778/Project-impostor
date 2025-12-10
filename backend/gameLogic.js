@@ -100,27 +100,30 @@ const iniciarPartida = async (io, socket, data) => {
         const { codigo, usuarioId } = data;
 
         const partida = await Partida.findByPk(codigo);
-        console.log('----------'+codigo+'......'+usuarioId);
+        
         if (!partida) {
             socket.emit('error', 'La partida no existe');
             return;
         }
 
         if (usuarioId != partida.admin) {
+            console.log(`El jugador ${usuarioId} ha intentado iniciar la partida ${codigo}, pero no es el admin`);
             socket.emit('error', 'La partida solo puede ser iniciada por su creador');
             return;
         }
+
+        console.log(`El jugador ${usuarioId} ha iniciado la partida ${codigo}`);
 
         io.to(codigo).emit('partida-iniciada', {
             mensaje: `El jugador ${usuarioId} ha iniciado la partida ${codigo}`
         });
 
     }
-    catch {
-        console.error("Error iniciando partida:");
+    catch (error) {
+        console.error("Error iniciando partida:", error);
         socket.emit('error', 'No se pudo iniciar la partida');
     }
-}
+};
 
 module.exports = {
     unirseAPartida,
