@@ -45,6 +45,16 @@ io.on('connection', (socket) => {
         unirseAPartida(io, socket, data);
     });
 
+    // Evento: Jugador quiere crear un partida
+    socket.on('crear-partida', async (data) => {
+        const partida = crearPartida(socket, data);
+
+        if (partida) {
+            socket.emit('partida-creada', partida);
+        }
+
+    });
+
     // Evento: Desconexión
     socket.on('disconnect', () => {
         console.log('❌ Cliente desconectado');

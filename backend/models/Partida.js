@@ -26,10 +26,22 @@ const Partida = sequelize.define('Partida', {
     }
   },
 
+  admin: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+
+  ganador: {
+    type: DataTypes.STRING,
+    defaultValue: 'empty',
+    allowNull: false
+  },
+
   // (Opcional) Puedes añadir más cosas si quieres
   estado: {
     type: DataTypes.STRING,
-    defaultValue: 'esperando' // esperando, jugando, terminada
+    defaultValue: 'esperando', // esperando, jugando, terminada
+    validate: { isIn: [['esperando', 'jugando', 'terminada']] }
   },
 
   max_jugadores: {

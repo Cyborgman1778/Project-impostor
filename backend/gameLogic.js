@@ -52,26 +52,47 @@ const unirseAPartida = async (io, socket, data) => {
     }
 };
 
-const crearPartida = async (io, socket, data) => {
-    const { usuarioId } = data;
-    let codigo;
-    let disp = false;
+const crearPartida = async (socket, data) => {
+    try {
+        const { usuarioId, max_jugadores, num_impostores } = data;
 
-    while (!disp) {
-        codigo = randCode();
+        if (!usuarioId) throw new Error("Falta el ID del usuario");
 
-        const partida = await Partida.findByPk(codigo);
+        let codigo;
+        let disp = false;
 
-        if (!partida) {
-            disponible = true;
+        while (!disp) {
+            codigo = randCode();
+            const partida = await Partida.findByPk(codigo);
+            if (!partida) {
+                disp = true;
+            }
         }
 
-    }
+        socket.join(codigo);
+        socket.data.salaActual = codigo;
+        socket.data.usuarioId = usuarioId;
 
-    return await Partida.create({
-    codigo: codigo,
-    ...datosPartida
-  });
+        let jugadores = [usuarioId];
+
+        const nuevaPartida = await Partida.create({
+            codigo: codigo,
+            jugadores: jugadores,
+            admin: usuarioId,
+            ganador: 'empty',
+            estado: 'esperando',
+            max_jugadores: max_jugadores,
+            num_impostores: num_impostores
+        });
+
+        console.log(`Sala ${codigo} creada por ${usuarioId}`);
+
+        return nuevaPartida;
+    }
+    catch (error) {
+        console.error("Error creando partida:", error);
+        socket.emit('error', 'No se pudo crear la partida');
+    }
 };
 
 module.exports = {
