@@ -4,6 +4,11 @@ const http = require('http'); // Necesario para unir Express y Socket.IO
 const { Server } = require('socket.io');
 const cors = require('cors');
 
+const { sequelize } = require('./database');
+const Partida = require('./models/Partida'); // Al importarlo, Sequelize ya sabe que existe
+
+const { unirseAPartida } = require('./gameLogic');
+
 // 2. CONFIGURACIÓN INICIAL
 const app = express();
 app.use(cors()); // Permite conexiones desde cualquier origen (tu app Vue)
@@ -37,30 +42,12 @@ io.on('connection', (socket) => {
 
     // Evento: Jugador quiere entrar a una partida
     socket.on('unirse-partida', async (data) => {
-        const { codigo, usuarioId } = data;
+        unirseAPartida(io, socket, data);
+    });
 
-        // A. Lógica de Base de Datos (Persistencia)
-        // Usamos la función del paso 2 para guardar que este usuario está en la partida
-        const partida = await Partida.findByPk(codigo);
-        // ... lógica de añadir al array y guardar ...
-
-        // B. Lógica de Websockets (La Magia de las Salas)
-        // Metemos este socket específico en un "cuarto" virtual con el nombre del código
-        socket.join(codigo);
-
-        console.log(`Socket ${socket.id} se unió a la sala ${codigo}`);
-
-        // C. Notificar a TODOS en esa partida
-        // .to(codigo) envía el mensaje SOLO a los sockets que hicieron .join(codigo)
-        io.to(codigo).emit('actualizacion-sala', {
-            mensaje: `El jugador ${usuarioId} ha entrado`,
-            jugadores: partida.jugadores // Enviamos la lista actualizada
-        });
-
-        // Evento: Desconexión
-        socket.on('disconnect', () => {
-            console.log('❌ Cliente desconectado');
-        });
+    // Evento: Desconexión
+    socket.on('disconnect', () => {
+        console.log('❌ Cliente desconectado');
     });
 });
 // --- ZONA B: API REST (Peticiones Clásicas) ---
@@ -96,20 +83,20 @@ app.post('/api/actualizar-datos', (req, res) => {
 const PORT = 3000;
 
 async function arrancarServidor() {
-  try {
-    // A. Sincronizar Base de Datos
-    // Esto mira tus archivos en 'models' y crea las tablas si no existen.
-    await sequelize.sync({ force: false }); 
-    console.log('📦 Base de datos sincronizada y tablas listas.');
+    try {
+        // A. Sincronizar Base de Datos
+        // Esto mira tus archivos en 'models' y crea las tablas si no existen.
+        await sequelize.sync({ force: false });
+        console.log('📦 Base de datos sincronizada y tablas listas.');
 
-    // B. Iniciar el servidor Web
-    server.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-    });
+        // B. Iniciar el servidor Web
+        server.listen(PORT, () => {
+            console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+        });
 
-  } catch (error) {
-    console.error('❌ Error fatal al iniciar:', error);
-  }
+    } catch (error) {
+        console.error('❌ Error fatal al iniciar:', error);
+    }
 }
 
 arrancarServidor();
