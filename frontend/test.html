@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba de Partidas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    fieldset { margin-bottom: 1.5rem; }
+    legend { font-weight: bold; }
+    label { display: block; margin-top: 0.5rem; }
+    input[type="text"], input[type="number"] { width: 200px; padding: 0.3rem; }
+    button { margin-top: 0.7rem; padding: 0.5rem 1rem; }
+    #log { border: 1px solid #ccc; min-height: 150px; padding: 0.5rem; white-space: pre-wrap; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1>Prueba de Partidas</h1>
+
+  <fieldset>
+    <legend>Crear Partida</legend>
+    <label>ID Usuario
+      <input type="text" id="c-usuario" placeholder="tu id" />
+    </label>
+    <label>Máx. jugadores
+      <input type="number" id="c-max" value="10" min="1" />
+    </label>
+    <label>Nº impostores
+      <input type="number" id="c-impostores" value="2" min="1" />
+    </label>
+    <button id="btn-crear">Crear partida</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Unirse a Partida</legend>
+    <label>ID Usuario
+      <input type="text" id="j-usuario" placeholder="tu id" />
+    </label>
+    <label>Código de partida
+      <input type="text" id="j-codigo" placeholder="por ej. 123456" />
+    </label>
+    <button id="btn-unirse">Unirse</button>
+  </fieldset>
+
+  <h2>Logs</h2>
+  <div id="log"></div>
+
+  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:3000'); // Ajusta la URL si tu back no corre en localhost:3000
+
+    function log(msg) {
+      const logDiv = document.getElementById('log');
+      logDiv.textContent += msg + '\n';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // --- Crear partida ---
+    document.getElementById('btn-crear').addEventListener('click', () => {
+      const usuarioId = document.getElementById('c-usuario').value.trim();
+      const max_jugadores = Number(document.getElementById('c-max').value);
+      const num_impostores = Number(document.getElementById('c-impostores').value);
+
+      if (!usuarioId) return log('⚠️  Escribe tu ID de usuario para crear la partida');
+
+      socket.emit('crear-partida', { usuarioId, max_jugadores, num_impostores });
+      log('🔄 Enviado crear-partida...');
+    });
+
+    // --- Unirse a partida ---
+    document.getElementById('btn-unirse').addEventListener('click', () => {
+      const usuarioId = document.getElementById('j-usuario').value.trim();
+      const codigo = document.getElementById('j-codigo').value.trim();
+
+      if (!usuarioId || !codigo) return log('⚠️  Completa ID de usuario y código');
+
+      socket.emit('unirse-partida', { usuarioId, codigo });
+      log('🔄 Enviado unirse-partida...');
+    });
+
+    // --- Listeners de respuestas del servidor ---
+    socket.on('partida-creada', (data) => {
+      log('🎉 Partida creada. Código: ' + data.codigo);
+    });
+
+    socket.on('nuevo-jugador', (data) => {
+      log('👥 ' + data.mensaje + ' | Jugadores: ' + data.jugadores.join(', '));
+    });
+
+    socket.on('error', (msg) => {
+      log('⚠️  Error: ' + msg);
+    });
+
+    // Listener opcional para pruebas
+    socket.on('test-response', (data) => {
+      log('✅ test-response: ' + JSON.stringify(data));
+    });
+  </script>
+</body>
+</html>
