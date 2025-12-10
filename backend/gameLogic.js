@@ -1,10 +1,18 @@
 // controllers/game_logic.js
 const Partida = require('../models/Partida'); // Asegúrate de importar tu modelo
 
+const randCode = () => {
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += Math.floor(Math.random() * 10);
+    }
+    return code;
+}
+
 // Función para manejar la lógica de unirse
 const unirseAPartida = async (io, socket, data) => {
     try {
-        const { codigo, usuarioId } = data;
+        const { codigo, usuarioId } = data; //el frontend DEBE ENVIAR EL CODIGO COMO STRING
 
         // 1. Lógica de Base de Datos
         const partida = await Partida.findByPk(codigo);
@@ -25,7 +33,7 @@ const unirseAPartida = async (io, socket, data) => {
 
         // 2. Lógica de WebSockets (Salas)
         socket.join(codigo);
-        
+
         // Guardamos el código de la sala en el objeto socket para usarlo al desconectarse
         // Esto es un truco muy útil para saber de qué sala salió
         socket.data.salaActual = codigo;
@@ -44,6 +52,29 @@ const unirseAPartida = async (io, socket, data) => {
     }
 };
 
+const crearPartida = async (io, socket, data) => {
+    const { usuarioId } = data;
+    let codigo;
+    let disp = false;
+
+    while (!disp) {
+        codigo = randCode();
+
+        const partida = await Partida.findByPk(codigo);
+
+        if (!partida) {
+            disponible = true;
+        }
+
+    }
+
+    return await Partida.create({
+    codigo: codigo,
+    ...datosPartida
+  });
+};
+
 module.exports = {
-    unirseAPartida
+    unirseAPartida,
+    crearPartida
 };

@@ -30,6 +30,18 @@ const Partida = sequelize.define('Partida', {
   estado: {
     type: DataTypes.STRING,
     defaultValue: 'esperando' // esperando, jugando, terminada
+  },
+
+  max_jugadores: {
+    type: DataTypes.INTEGER,
+    defaultValue: 3,
+    allowNull: false
+  },
+
+  num_impostores: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    allowNull: false
   }
 });
 
