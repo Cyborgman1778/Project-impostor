@@ -105,14 +105,19 @@ const iniciarPartida = async (io, socket, data) => {
             return;
         }
 
+        if (usuarioId != partida.admin) {
+            socket.emit('error', 'La partida solo puede ser iniciada por su creador');
+            return;
+        }
+
         io.to(codigo).emit('partida-iniciada', {
             mensaje: `El jugador ${usuarioId} ha iniciado la partida ${codigo}`
         });
 
     }
-    catch{
+    catch {
         console.error("Error iniciando partida:", error);
-        socket.emit('error', 'No se pudo iniciar la partida');        
+        socket.emit('error', 'No se pudo iniciar la partida');
     }
 }
 

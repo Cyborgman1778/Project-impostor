@@ -57,12 +57,7 @@ io.on('connection', (socket) => {
 
     // Evento: Jugador quiere iniciar un partida
     socket.on('iniciar-partida', async (data) => {
-        const partida = await iniciarPartida(socket, data);
-
-        if (partida) {
-            socket.emit('partida-creada', partida);
-        }
-
+        await iniciarPartida(socket, data);
     });
 
     // Evento: Desconexión
