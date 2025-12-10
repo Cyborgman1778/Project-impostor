@@ -1,5 +1,5 @@
 // controllers/game_logic.js
-const Partida = require('../models/Partida'); // Asegúrate de importar tu modelo
+const Partida = require('./models/Partida'); // Asegúrate de importar tu modelo
 
 const randCode = () => {
     let code = '';
